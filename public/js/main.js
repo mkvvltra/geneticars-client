@@ -7,7 +7,7 @@ var simulationState = 0
 
 var cars = []
 
-var simulationTicker
+var simulationTicker, rotationTicker
 var simulationTick = 0
 
 init()
@@ -56,8 +56,6 @@ function init() {
   scene.add(ambientLight);
 
   scene.add( camera )
-
-  createCar()
 }
 
 function rotateCamera() {
@@ -67,15 +65,43 @@ function rotateCamera() {
   camera.lookAt(ground.position);
 }
 
-function runSimulation() {
+async function runSimulation() {
+  const res = await fetch('http://localhost:3000/generate_population');
+  const json = await res.json();
+  json.forEach(({ id, dna }) => {
+    createCar(dna)  
+  })
+
   simulationTicker = setInterval(() => {
     simulationTick++
-  }, 100)
+  }, 1000)
+
+  let previousTime = 0
+
+  rotationTicker = setInterval(() => {
+    cars.forEach(car => {
+      const { rotation: { y }, direction } = car
+      car.rotation.set(0, lerp(y, direction, 0.1), 0)
+    })
+  }, 10)
 }
 
 function stopSimulation() {
   clearInterval(simulationTicker)
+  clearInterval(rotationTicker)
+  simulationTicker = null
+  rotationTicker = null
   simulationTick = 0
+
+  console.log(cars[0].rotation.y)
+
+  cars.forEach(car => {
+    car.geometry.dispose();
+    car.material.dispose();
+    scene.remove(car);
+  })
+
+  cars = []
 }
 
 function animate() {
@@ -86,33 +112,35 @@ function animate() {
 function render() {
   rotateCamera();
   renderer.render( scene, camera );
-  // console.log('xd')
 }
 
 function createCar(directionArray) {
   const carGeometry = new THREE.BoxGeometry( 1, 2, 3 )
   const car = new THREE.Mesh( 
     carGeometry,
-    new THREE.MeshPhongMaterial({ color: 0x171717, specular: 0x009900, flatShading: true, doubleSided: true })
+    new THREE.MeshPhongMaterial({ color: 0x171717, specular: 0x009900, flatShading: true })
   );
-
-  console.log(car)
 
   cars.push(car)
   scene.add(car)
 
   const { x, y, z } = car.rotation
 
+  car.crashed = false
+
+  car.direction = y + directionArray[simulationTick]
+  let lastTick = simulationTick
+
   car.onAfterRender = () => {
-    car.translateZ(.1);
-    car.rotation.set(0, lerp(y, simulationTick, .1), 0)
-    // car.rotation.set(0,simulationTick,0)
+    if(!car.crashed){
+      car.translateZ(.1);
+      if(lastTick !== simulationTick){
+        lastTick = simulationTick
+        car.direction = y + directionArray[simulationTick]
+      }
+    }
   }
 }
-
-// while(true){
-//   console.log('xd')
-// }
 
 window.addEventListener( 'resize', onWindowResize, false );
 function onWindowResize(){
