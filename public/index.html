@@ -6,7 +6,9 @@
     <link rel="stylesheet" href="index.css">
     <script type="text/javascript" src="three/three.js"></script>
     <script type="text/javascript" src="three/controls/OrbitControls.js"></script>
-    <script type="text/javascript" src="three/loaders/OBJLoader.js"></script>
+    <script type="text/javascript" src="three/loaders/LoaderSupport.js"></script>
+    <script type="text/javascript" src="three/loaders/OBJLoader2.js"></script>
+    <script type="text/javascript" src="three/loaders/MTLLoader.js"></script>
 </head>
 <body>
   <div id="container">
@@ -21,7 +23,13 @@
     id="stop"
     onClick='stopSimulation()'
   >
-    stop
+    end
+  </button>
+  <button 
+    id="restart"
+    onClick='stopAndClear()'
+  >
+    restart
   </button>
 </body>
 <script type="text/javascript" src="js/utils.js"></script>

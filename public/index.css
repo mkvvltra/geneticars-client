@@ -23,3 +23,9 @@ body {
 	left: 4rem;
 	z-index: 1
 }
+
+#restart{
+	position: absolute;
+	left: 7.5rem;
+	z-index: 1
+}
